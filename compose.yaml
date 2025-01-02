@@ -1,9 +1,10 @@
+version: "3.9"
 services:
   postgres:
-    image: 'postgres:latest'
+    image: postgres:latest
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      POSTGRES_DB: "diplom"
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "root"
     ports:
-      - '5432'
+      - "5432:5432"
