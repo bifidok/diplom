@@ -4,16 +4,16 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
-@Table(name = "task_description")
+@Table(name = "task_image")
 @Getter
-public class TaskDescription {
+public class TaskImage {
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @OneToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "task_id", referencedColumnName = "id")
     private Task task;
-    @Column(name = "text")
-    private String text;
+    @Column
+    private String name;
 }

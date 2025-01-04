@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TaskAnswer {
-    private Long taskId;
-    private String answer;
+public class TaskImage {
+    private Long id;
+    private String name;
 }

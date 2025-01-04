@@ -1,14 +1,13 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.ToString;
+import lombok.Getter;
 
 import java.util.Set;
 
 @Entity
 @Table(name = "task")
-@Data
+@Getter
 public class Task {
     @Id
     @Column
@@ -20,6 +19,9 @@ public class Task {
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "task")
     private Set<TaskAnswer> answers;
+
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "task")
+    private Set<TaskImage> images;
 
     @Column(name = "level")
     private int level;

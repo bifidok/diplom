@@ -4,6 +4,7 @@ import com.example.demo.converter.TaskConverter;
 import com.example.demo.dto.Task;
 import com.example.demo.repository.TaskRepository;
 import lombok.NoArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ public class TaskServiceImpl implements TaskService{
     private TaskRepository taskRepository;
     private TaskConverter taskConverter;
 
+    @Autowired
     public TaskServiceImpl(
         TaskRepository repository,
         TaskConverter converter

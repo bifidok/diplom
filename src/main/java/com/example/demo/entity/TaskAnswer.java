@@ -1,11 +1,11 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
 
 @Entity
 @Table(name = "task_answer")
-@Data
+@Getter
 public class TaskAnswer {
     @Id
     @Column

@@ -8,10 +8,8 @@ import java.util.Set;
 @Data
 @Builder
 public class Task {
-
+    private Long id;
     private TaskDescription description;
-
-    private Set<TaskAnswer> answers;
-
+    private Set<TaskImage> images;
     private int level;
 }
