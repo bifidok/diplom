@@ -47,8 +47,17 @@ public class TaskServiceImpl implements TaskService{
         this.taskVersionRepository = taskVersionRepository;
     }
 
+    @Override
+    public List<Task> getTasks(String hashcode) {
+        List<TaskVersion> tasks = taskVersionRepository.findTaskVersionByVersionHashcodeContaining(hashcode);
+        return tasks.stream()
+            .map(TaskVersion::getTask)
+            .map(taskConverter::convert)
+            .toList();
+    }
+
     @Transactional
-    public List<Task> getTasks(){
+    public String generateRandomVersion(){
         List<Task> result = new ArrayList<>();
         List<com.example.demo.entity.Task> allTasks = StreamSupport.stream(
                 taskRepository.findAll().spliterator(),
@@ -61,8 +70,7 @@ public class TaskServiceImpl implements TaskService{
                 .map(taskConverter::convert)
                 .toList()
         );
-        saveTasksVersionIfNeeded(result, randomTasks);
-        return result;
+        return saveTasksVersionIfNeeded(result, randomTasks);
     }
 
     public Task getTask(Long id){
@@ -93,7 +101,7 @@ public class TaskServiceImpl implements TaskService{
         return result;
     }
 
-    private void saveTasksVersionIfNeeded(
+    private String saveTasksVersionIfNeeded(
         List<Task> allTasks,
         List<com.example.demo.entity.Task> randomTasks
     ){
@@ -102,7 +110,7 @@ public class TaskServiceImpl implements TaskService{
             .collect(Collectors.joining(""));
         Optional<Version> versionOptional = versionRepository.findVersionByHashcode(hashcode);
         if (versionOptional.isPresent()) {
-            return;
+            return hashcode;
         }
         Version version = versionRepository.save(
             Version.builder()
@@ -121,5 +129,6 @@ public class TaskServiceImpl implements TaskService{
                 .task(task)
                 .build())
             .forEach(taskVersionRepository::save);
+        return hashcode;
     }
 }

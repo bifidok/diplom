@@ -19,13 +19,13 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @GetMapping
-    public List<Task> getTasks(){
-        return taskService.getTasks();
+    @GetMapping("/{hashcode}")
+    public List<Task> getTasks(@PathVariable String hashcode){
+        return taskService.getTasks(hashcode);
     }
 
-    @GetMapping("/{id}")
-    public Task getTasks(@PathVariable Long id){
-        return taskService.getTask(id);
+    @GetMapping("/generator")
+    public String generateRandomVersion(){
+        return taskService.generateRandomVersion();
     }
 }

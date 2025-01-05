@@ -5,7 +5,8 @@ import com.example.demo.dto.Task;
 import java.util.List;
 
 public interface TaskService {
-    List<Task> getTasks();
+    List<Task> getTasks(String hashcode);
+    String generateRandomVersion();
 
     Task getTask(Long id);
 }
