@@ -1,3 +1,8 @@
+task:
+  task-list:
+    first_level: 1
+    second_level: 1
+    third_level: 1
 spring:
   application:
     name: diplom
