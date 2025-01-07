@@ -10,6 +10,7 @@ import com.example.demo.repository.TaskAnswerResultTaskRepository;
 import com.example.demo.repository.TaskRepository;
 import org.apache.el.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,16 +28,19 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
     private TaskRepository taskRepository;
     private TaskAnswerResultRepository taskAnswerResultRepository;
     private TaskAnswerResultTaskRepository taskAnswerResultTaskRepository;
+    private JdoodleService jdoodleService;
 
     @Autowired
     public TaskAnswerServiceImpl(
         TaskRepository taskRepository,
         TaskAnswerResultRepository taskAnswerResultRepository,
-        TaskAnswerResultTaskRepository taskAnswerResultTaskRepository
+        TaskAnswerResultTaskRepository taskAnswerResultTaskRepository,
+        JdoodleService jdoodleService
     ) {
         this.taskRepository = taskRepository;
         this.taskAnswerResultRepository = taskAnswerResultRepository;
         this.taskAnswerResultTaskRepository = taskAnswerResultTaskRepository;
+        this.jdoodleService = jdoodleService;
     }
 
     @Override
@@ -95,8 +99,15 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
                     .task(task)
                     .build()
                 ).forEach(taskAnswerResultTaskRepository::save);
+
+        tasksToCompile.keySet().stream()
+            .forEach(answer -> executeCode(answer.getAnswer()));
         return TaskAnswerResult.builder()
             .resultUrl("http://localhost:8080/answer/" + result.getId())
             .build();
+    }
+
+    private String executeCode(String code) {
+        return jdoodleService.executeCode(code);
     }
 }

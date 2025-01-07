@@ -9,4 +9,5 @@ import java.util.Map;
 @Setter
 public class TaskAnswerRequest {
     private Map<Long, String> taskToAnswer;
+    private Map<Long, CompilableTask> taskToCompilableAnswer;
 }
