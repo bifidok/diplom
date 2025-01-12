@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface TaskVersionRepository extends CrudRepository<TaskVersion, TaskVersionKey> {
-    List<TaskVersion> findTaskVersionByVersionHashcodeContaining(String hashcode);
+    List<TaskVersion> findTaskVersionByVersionHashcode(String hashcode);
 }

@@ -30,7 +30,7 @@ public class JdoodleServiceImpl implements JdoodleService {
            return "";
         }
         ExecuteRequest request = ExecuteRequest.builder()
-            .stdin("")
+            .stdin("2 4")
             .versionIndex("5")
             .language("java")
             .compileOnly(false)

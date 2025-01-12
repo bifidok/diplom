@@ -49,7 +49,7 @@ public class TaskServiceImpl implements TaskService{
 
     @Override
     public List<Task> getTasks(String hashcode) {
-        List<TaskVersion> tasks = taskVersionRepository.findTaskVersionByVersionHashcodeContaining(hashcode);
+        List<TaskVersion> tasks = taskVersionRepository.findTaskVersionByVersionHashcode(hashcode);
         return tasks.stream()
             .map(TaskVersion::getTask)
             .map(taskConverter::convert)
