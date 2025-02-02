@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 @Service
 public class JdoodleServiceImpl implements JdoodleService {
 
@@ -56,8 +59,20 @@ public class JdoodleServiceImpl implements JdoodleService {
             String.class
         );
 
-        var body = response.getBody();
-        System.out.println(body);
-        return body;
+        return extractOutput(response.getBody());
+    }
+
+    private String extractOutput(String body) {
+        String regex = "\\w?\"output\":\"(\\w+)\"";
+
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(body);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        } else {
+            System.out.println("No match found." + body);
+        }
+        return null;
     }
 }

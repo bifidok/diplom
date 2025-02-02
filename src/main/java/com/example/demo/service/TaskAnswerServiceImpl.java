@@ -4,14 +4,9 @@ import com.example.demo.converter.LanguageConverter;
 import com.example.demo.dto.TaskAnswer;
 import com.example.demo.dto.TaskAnswerResult;
 import com.example.demo.dto.TaskCompilableAnswer;
-import com.example.demo.entity.Task;
-import com.example.demo.entity.TaskAnswerResultTask;
-import com.example.demo.entity.TaskAnswerResultTaskKey;
+import com.example.demo.entity.*;
 import com.example.demo.enums.Language;
-import com.example.demo.repository.TaskAnswerResultRepository;
-import com.example.demo.repository.TaskAnswerResultTaskRepository;
-import com.example.demo.repository.TaskInputRepository;
-import com.example.demo.repository.TaskRepository;
+import com.example.demo.repository.*;
 import com.example.demo.request.TaskAnswerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -30,11 +25,13 @@ import java.util.stream.StreamSupport;
 @Service
 public class TaskAnswerServiceImpl implements TaskAnswerService {
     private TaskRepository taskRepository;
+    private TaskProgramRepository taskProgramRepository;
     private TaskAnswerResultRepository taskAnswerResultRepository;
     private TaskAnswerResultTaskRepository taskAnswerResultTaskRepository;
     private TaskInputRepository taskInputRepository;
     private JdoodleService jdoodleService;
     private LanguageConverter languageConverter;
+    private CodeExecutorService codeExecutorService;
 
     @Autowired
     public TaskAnswerServiceImpl(
@@ -43,7 +40,9 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         TaskAnswerResultTaskRepository taskAnswerResultTaskRepository,
         JdoodleService jdoodleService,
         LanguageConverter languageConverter,
-        TaskInputRepository taskInputRepository
+        TaskInputRepository taskInputRepository,
+        CodeExecutorService codeExecutorService,
+        TaskProgramRepository taskProgramRepository
     ) {
         this.taskRepository = taskRepository;
         this.taskAnswerResultRepository = taskAnswerResultRepository;
@@ -51,6 +50,8 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         this.jdoodleService = jdoodleService;
         this.languageConverter = languageConverter;
         this.taskInputRepository = taskInputRepository;
+        this.codeExecutorService = codeExecutorService;
+        this.taskProgramRepository = taskProgramRepository;
     }
 
     @Override
@@ -124,23 +125,37 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
                 ).spliterator(), false)
             .collect(Collectors.toMap(Task::getId, Function.identity()));
         int score = 0;
-        answers.stream()
-                .forEach(answer -> {
-                    var task = taskIdToTask.get(answer.getTaskId());
-                    var result = executeCode(task, answer.getAnswer(), languageConverter.convert(answer.getLang()));
-                });
+        for(var answer : answers) {
+            var task = taskIdToTask.get(answer.getTaskId());
+            var isCorrect = executeCode(task, answer.getAnswer(), languageConverter.convert(answer.getLang()));
+            if (isCorrect) {
+                score += task.getLevel();
+            }
+        }
         return new TaskAnswerScore(
-                score,
-                taskIdToTask.values().stream().toList()
+            score,
+            taskIdToTask.values().stream().toList()
         );
     }
 
-    private String executeCode(Task task, String code, Language language) {
-        var input = taskInputRepository.findTaskInputByTaskId(task.getId());
-        if(input == null) {
+    private boolean executeCode(Task task, String code, Language language) {
+        List<TaskInput> inputs = taskInputRepository.findTaskInputsByTaskId(task.getId());
+        if (inputs.isEmpty()) {
             throw new IllegalStateException(String.format("No input for compilable task %s", task.getId()));
         }
-        return jdoodleService.executeCode(code, input.getValue(), language);
+        TaskProgram program = taskProgramRepository.findByTaskId(task.getId());
+        if (program == null) {
+            throw new IllegalStateException(String.format("No program for compilable task %s", task.getId()));
+        }
+        boolean isCorrect = true;
+        for (var input : inputs) {
+            var expected = codeExecutorService.executeProgram(input.getValue(), program.getProgramName());
+            var actual = jdoodleService.executeCode(code, input.getValue(), language);
+            if (!expected.equals(actual)) {
+                isCorrect = false;
+            }
+        }
+        return isCorrect;
     }
     private record TaskAnswerScore(int score, List<Task> tasks){}
 }
