@@ -1,5 +1,6 @@
 jdoodle:
   enabled: true
+  url: https://api.jdoodle.com/v1/execute
   client-id: 406741b41d51b95c1e07ce0e4f83f2b7
   client-secret: af0e851aee1b5231135f2915691676a4df71ca3439aedcbfcd68c208990e4e49
   language-versions:
@@ -26,7 +27,7 @@ task:
   task-list:
     first_level: 1
     second_level: 1
-    third_level: 2
+    third_level: 1
 spring:
   application:
     name: diplom

@@ -1,5 +1,7 @@
 package com.example.demo.service;
 
+import com.example.demo.converter.LanguageConverter;
+import com.example.demo.enums.Language;
 import com.example.demo.properties.jdoodle.JdoodleProperties;
 import com.example.demo.request.ExecuteRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,24 +17,28 @@ public class JdoodleServiceImpl implements JdoodleService {
 
     private RestTemplate restTemplate;
     private JdoodleProperties jdoodleProperties;
+    private LanguageConverter languageConverter;
 
     @Autowired
     public JdoodleServiceImpl(
         RestTemplate restTemplate,
-        JdoodleProperties jdoodleProperties
+        JdoodleProperties jdoodleProperties,
+        LanguageConverter languageConverter
     ) {
         this.restTemplate = restTemplate;
         this.jdoodleProperties = jdoodleProperties;
+        this.languageConverter = languageConverter;
     }
 
-    public String executeCode(String code) {
+    public String executeCode(String code, String input, Language language) {
         if (!jdoodleProperties.isEnabled()) {
            return "";
         }
+        var languageVersion = languageConverter.toPropertiesLanguage(jdoodleProperties.getLanguageVersions(), language);
         ExecuteRequest request = ExecuteRequest.builder()
-            .stdin("2 4")
-            .versionIndex("5")
-            .language("java")
+            .stdin(input)
+            .versionIndex(languageVersion.version())
+            .language(languageVersion.name())
             .compileOnly(false)
             .script(code)
             .clientId(jdoodleProperties.getClientId())
@@ -44,7 +50,7 @@ public class JdoodleServiceImpl implements JdoodleService {
         HttpEntity<ExecuteRequest> entity = new HttpEntity<>(request, headers);
 
         ResponseEntity<String> response = restTemplate.exchange(
-            "https://api.jdoodle.com/v1/execute",
+            jdoodleProperties.getUrl(),
             HttpMethod.POST,
             entity,
             String.class

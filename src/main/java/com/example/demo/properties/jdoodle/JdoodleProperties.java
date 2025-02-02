@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Setter
 public class JdoodleProperties {
     private boolean enabled;
+    private String url;
     private String clientId;
     private String clientSecret;
     private LanguageVersions languageVersions;

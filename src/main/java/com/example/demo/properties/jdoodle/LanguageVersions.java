@@ -1,5 +1,10 @@
 package com.example.demo.properties.jdoodle;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class LanguageVersions {
     private Language java;
     private Language c;
@@ -7,8 +12,4 @@ public class LanguageVersions {
     private Language cPlus;
     private Language pascal;
     private Language python;
-}
-
-record Language(String name, String version) {
-
 }

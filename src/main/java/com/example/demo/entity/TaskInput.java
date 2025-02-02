@@ -17,6 +17,4 @@ public class TaskInput {
     private Task task;
     @Column(name = "value")
     private String value;
-    @Column(name = "is_numeric")
-    private boolean isNumeric;
 }

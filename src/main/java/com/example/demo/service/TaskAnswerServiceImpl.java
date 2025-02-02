@@ -1,13 +1,16 @@
 package com.example.demo.service;
 
+import com.example.demo.converter.LanguageConverter;
 import com.example.demo.dto.TaskAnswer;
 import com.example.demo.dto.TaskAnswerResult;
 import com.example.demo.dto.TaskCompilableAnswer;
 import com.example.demo.entity.Task;
 import com.example.demo.entity.TaskAnswerResultTask;
 import com.example.demo.entity.TaskAnswerResultTaskKey;
+import com.example.demo.enums.Language;
 import com.example.demo.repository.TaskAnswerResultRepository;
 import com.example.demo.repository.TaskAnswerResultTaskRepository;
+import com.example.demo.repository.TaskInputRepository;
 import com.example.demo.repository.TaskRepository;
 import com.example.demo.request.TaskAnswerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,19 +32,25 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
     private TaskRepository taskRepository;
     private TaskAnswerResultRepository taskAnswerResultRepository;
     private TaskAnswerResultTaskRepository taskAnswerResultTaskRepository;
+    private TaskInputRepository taskInputRepository;
     private JdoodleService jdoodleService;
+    private LanguageConverter languageConverter;
 
     @Autowired
     public TaskAnswerServiceImpl(
         TaskRepository taskRepository,
         TaskAnswerResultRepository taskAnswerResultRepository,
         TaskAnswerResultTaskRepository taskAnswerResultTaskRepository,
-        JdoodleService jdoodleService
+        JdoodleService jdoodleService,
+        LanguageConverter languageConverter,
+        TaskInputRepository taskInputRepository
     ) {
         this.taskRepository = taskRepository;
         this.taskAnswerResultRepository = taskAnswerResultRepository;
         this.taskAnswerResultTaskRepository = taskAnswerResultTaskRepository;
         this.jdoodleService = jdoodleService;
+        this.languageConverter = languageConverter;
+        this.taskInputRepository = taskInputRepository;
     }
 
     @Override
@@ -118,7 +127,7 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         answers.stream()
                 .forEach(answer -> {
                     var task = taskIdToTask.get(answer.getTaskId());
-                    var result = executeCode(answer.getAnswer());
+                    var result = executeCode(task, answer.getAnswer(), languageConverter.convert(answer.getLang()));
                 });
         return new TaskAnswerScore(
                 score,
@@ -126,8 +135,12 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         );
     }
 
-    private String executeCode(String code) {
-        return jdoodleService.executeCode(code);
+    private String executeCode(Task task, String code, Language language) {
+        var input = taskInputRepository.findTaskInputByTaskId(task.getId());
+        if(input == null) {
+            throw new IllegalStateException(String.format("No input for compilable task %s", task.getId()));
+        }
+        return jdoodleService.executeCode(code, input.getValue(), language);
     }
     private record TaskAnswerScore(int score, List<Task> tasks){}
 }
