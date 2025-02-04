@@ -21,7 +21,7 @@ public class Task {
     private Set<TaskAnswer> answers;
 
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, mappedBy = "task")
-    private Set<TaskImage> images;
+    private Set<TaskFile> files;
 
     @Column(name = "level")
     private int level;

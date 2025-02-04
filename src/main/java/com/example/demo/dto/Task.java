@@ -10,6 +10,7 @@ import java.util.Set;
 public class Task {
     private Long id;
     private TaskDescription description;
-    private Set<TaskImage> images;
+    private Set<TaskFile> images;
+    private Set<TaskFile> files;
     private int level;
 }

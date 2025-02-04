@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class TaskImage {
+public class TaskFile {
     private Long id;
     private String name;
 }

@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
-@Table(name = "task_image")
+@Table(name = "task_file")
 @Getter
-public class TaskImage {
+public class TaskFile {
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
