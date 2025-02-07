@@ -6,20 +6,21 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Entity
-@Table(name = "task_answer_result")
+@Table(name = "users")
 @Getter
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
-public class TaskAnswerResult {
+@NoArgsConstructor
+@Builder
+public class User {
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column
-    private Long score;
-    @OneToOne
-    @JoinColumn(name = "session_id", referencedColumnName = "id")
-    private TaskAnswerSession taskAnswerSession;
+    @Column(name = "login")
+    private String login;
+    @Column(name = "password")
+    private String password;
 }

@@ -7,19 +7,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
-@Table(name = "task_answer_result")
+@Table(name = "task_answer_session")
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TaskAnswerResult {
+public class TaskAnswerSession {
     @Id
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column
-    private Long score;
-    @OneToOne
-    @JoinColumn(name = "session_id", referencedColumnName = "id")
-    private TaskAnswerSession taskAnswerSession;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    private User user;
 }

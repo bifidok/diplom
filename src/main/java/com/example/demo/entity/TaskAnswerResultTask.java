@@ -3,6 +3,7 @@ package com.example.demo.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
@@ -10,16 +11,20 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 public class TaskAnswerResultTask {
     @EmbeddedId
     private TaskAnswerResultTaskKey id;
     @ManyToOne
     @MapsId("taskId")
     @JoinColumn(name = "task_id")
-    Task task;
+    private Task task;
 
     @ManyToOne
     @MapsId("taskAnswerResultId")
     @JoinColumn(name = "task_answer_result_id")
-    TaskAnswerResult taskAnswerResult;
+    private TaskAnswerResult taskAnswerResult;
+
+    @Column
+    private Long score;
 }
