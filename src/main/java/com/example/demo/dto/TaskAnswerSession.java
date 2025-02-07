@@ -9,5 +9,5 @@ import java.util.Map;
 @Getter
 public class TaskAnswerSession {
     private Long commonScore;
-    private Map<Task,Long> taskToScore;
+    private Map<Long,Long> taskIdToScore;
 }

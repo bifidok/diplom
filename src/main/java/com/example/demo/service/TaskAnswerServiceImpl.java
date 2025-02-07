@@ -31,7 +31,6 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
     private JdoodleService jdoodleService;
     private LanguageConverter languageConverter;
     private CodeExecutorService codeExecutorService;
-    private TaskConverter taskConverter;
 
     @Autowired
     public TaskAnswerServiceImpl(
@@ -43,8 +42,7 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         TaskInputRepository taskInputRepository,
         CodeExecutorService codeExecutorService,
         TaskProgramRepository taskProgramRepository,
-        TaskAnswerSessionRepository taskAnswerSessionRepository,
-        TaskConverter taskConverter
+        TaskAnswerSessionRepository taskAnswerSessionRepository
     ) {
         this.taskRepository = taskRepository;
         this.taskAnswerResultRepository = taskAnswerResultRepository;
@@ -55,7 +53,6 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         this.codeExecutorService = codeExecutorService;
         this.taskProgramRepository = taskProgramRepository;
         this.taskAnswerSessionRepository = taskAnswerSessionRepository;
-        this.taskConverter = taskConverter;
     }
 
     @Override
@@ -69,10 +66,10 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         );
         return com.example.demo.dto.TaskAnswerSession.builder()
             .commonScore(taskAnswerResultOptional.get().getScore())
-            .taskToScore(
+            .taskIdToScore(
                 taskAnswerResultTask.stream()
                     .collect(Collectors.toMap(
-                        resultTask -> taskConverter.convert(resultTask.getTask()),
+                        resultTask -> resultTask.getTask().getId(),
                         resultTask -> resultTask.getScore()
                     ))
             )
