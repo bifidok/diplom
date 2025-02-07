@@ -14,10 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -81,23 +78,24 @@ public class TaskServiceImpl implements TaskService{
 
     private List<com.example.demo.entity.Task> extractNLevelTasks(
         List<com.example.demo.entity.Task> allTasks,
-        Supplier<Long> getter,
+        Long taskCountToExtract,
         int level
     ){
-        var levelTasks = allTasks.stream()
+        var appropriateLevelTasks = allTasks.stream()
             .filter(task -> task.getLevel() == level)
-            .collect(Collectors.toSet());
-        var countToSkip = Math.min(random.nextInt(0, levelTasks.size()), levelTasks.size() - getter.get());
-        return levelTasks.stream()
-            .skip(countToSkip)
-            .limit(getter.get())
+            .toList();
+
+        Collections.shuffle(appropriateLevelTasks);
+        return appropriateLevelTasks.stream()
+            .limit(taskCountToExtract)
+            .sorted(Comparator.comparing(com.example.demo.entity.Task::getId))
             .toList();
     }
     private List<com.example.demo.entity.Task> getRandomTasks(List<com.example.demo.entity.Task> allTasks){
         List<com.example.demo.entity.Task> result = new ArrayList<>();
-        result.addAll(extractNLevelTasks(allTasks, () -> taskListProperties.getTaskList().getFirstLevel(), 1));
-        result.addAll(extractNLevelTasks(allTasks, () -> taskListProperties.getTaskList().getSecondLevel(), 2));
-        result.addAll(extractNLevelTasks(allTasks, () -> taskListProperties.getTaskList().getThirdLevel(), 3));
+        result.addAll(extractNLevelTasks(allTasks, taskListProperties.getTaskList().getFirstLevel(), 1));
+        result.addAll(extractNLevelTasks(allTasks, taskListProperties.getTaskList().getSecondLevel(), 2));
+        result.addAll(extractNLevelTasks(allTasks, taskListProperties.getTaskList().getThirdLevel(), 3));
         return result;
     }
 
