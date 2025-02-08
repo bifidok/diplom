@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.AccountDetails;
 import com.example.demo.dto.TaskAnswerSession;
 import com.example.demo.service.SessionService;
 import com.example.demo.service.TaskAnswerService;
@@ -34,20 +35,26 @@ public class AccountController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskAnswerSession>> get(HttpServletRequest request) {
+    public ResponseEntity<AccountDetails> get(HttpServletRequest request) {
         Cookie cookieSession = SessionUtils.findSessionCookie(request);
         if (cookieSession == null) {
             return ResponseEntity.noContent().build();
         }
         String sessionId = cookieSession.getValue();
         var sessionOptional = sessionService.findById(Long.valueOf(sessionId));
-        if(sessionOptional.isEmpty()) {
+        if (sessionOptional.isEmpty()) {
             throw new IllegalStateException(String.format("Session %s not found", sessionId));
         }
         var taskAnswerSessions = taskAnswerSessionService.findSessionsByUser(sessionOptional.get().getUser().getId());
         return ResponseEntity.ok()
-            .body(taskAnswerSessions.stream()
-            .map(session -> taskAnswerService.getScoreBySession(session.getId()))
-            .toList());
+            .body(
+                AccountDetails.builder()
+                    .sessions(
+                        taskAnswerSessions.stream()
+                            .map(session -> taskAnswerService.getScoreBySession(session.getId()))
+                            .toList()
+                    ).login(sessionOptional.get().getUser().getLogin())
+                    .build()
+            );
     }
 }

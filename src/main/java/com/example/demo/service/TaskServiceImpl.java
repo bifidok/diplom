@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Supplier;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -48,6 +48,7 @@ public class TaskServiceImpl implements TaskService{
     public List<Task> getTasks(String hashcode) {
         List<TaskVersion> tasks = taskVersionRepository.findTaskVersionByVersionHashcode(hashcode);
         return tasks.stream()
+            .sorted(Comparator.comparing(TaskVersion::getIndex))
             .map(TaskVersion::getTask)
             .map(taskConverter::convert)
             .toList();
@@ -55,19 +56,13 @@ public class TaskServiceImpl implements TaskService{
 
     @Transactional
     public String generateRandomVersion(){
-        List<Task> result = new ArrayList<>();
         List<com.example.demo.entity.Task> allTasks = StreamSupport.stream(
                 taskRepository.findAll().spliterator(),
                 false
             )
             .toList();
         List<com.example.demo.entity.Task> randomTasks = getRandomTasks(allTasks);
-        result.addAll(
-            randomTasks.stream()
-                .map(taskConverter::convert)
-                .toList()
-        );
-        return saveTasksVersionIfNeeded(result, randomTasks);
+        return saveTasksVersionIfNeeded(randomTasks);
     }
 
     public Task getTask(Long id){
@@ -83,7 +78,7 @@ public class TaskServiceImpl implements TaskService{
     ){
         var appropriateLevelTasks = allTasks.stream()
             .filter(task -> task.getLevel() == level)
-            .toList();
+            .collect(Collectors.toCollection(ArrayList::new));
 
         Collections.shuffle(appropriateLevelTasks);
         return appropriateLevelTasks.stream()
@@ -100,12 +95,12 @@ public class TaskServiceImpl implements TaskService{
     }
 
     private String saveTasksVersionIfNeeded(
-        List<Task> allTasks,
         List<com.example.demo.entity.Task> randomTasks
     ){
-        String hashcode = allTasks.stream()
-            .map(task -> String.valueOf(task.getId()))
-            .collect(Collectors.joining(""));
+        String hashcode = String.valueOf(randomTasks.stream()
+                .map(com.example.demo.entity.Task::getId)
+                .map(String::valueOf)
+                .collect(Collectors.joining(",")).hashCode());
         Optional<Version> versionOptional = versionRepository.findVersionByHashcode(hashcode);
         if (versionOptional.isPresent()) {
             return hashcode;
@@ -115,17 +110,21 @@ public class TaskServiceImpl implements TaskService{
                 .hashcode(hashcode)
                 .build()
         );
+        AtomicReference<Long> index = new AtomicReference<>(0L);
         randomTasks.stream()
-            .map(task -> TaskVersion.builder()
-                .id(
-                    TaskVersionKey.builder()
-                        .taskId(task.getId())
-                        .versionId(version.getId())
-                        .build()
-                )
-                .version(version)
-                .task(task)
-                .build())
+            .map(task ->
+                TaskVersion.builder()
+                    .id(
+                        TaskVersionKey.builder()
+                            .taskId(task.getId())
+                            .versionId(version.getId())
+                            .build()
+                    )
+                    .version(version)
+                    .task(task)
+                    .index(index.getAndSet(index.get() + 1))
+                    .build()
+            )
             .forEach(taskVersionRepository::save);
         return hashcode;
     }

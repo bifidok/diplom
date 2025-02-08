@@ -17,9 +17,15 @@ public class TaskAnswerResult {
     @Column
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column
     private Long score;
+
     @OneToOne
     @JoinColumn(name = "session_id", referencedColumnName = "id")
     private TaskAnswerSession taskAnswerSession;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "version_id", referencedColumnName = "id")
+    private Version version;
 }

@@ -24,4 +24,7 @@ public class TaskVersion {
     @MapsId("versionId")
     @JoinColumn(name = "version_id")
     Version version;
+
+    @Column
+    Long index;
 }

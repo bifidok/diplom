@@ -12,6 +12,7 @@ import java.util.List;
 public interface TaskAnswerService {
     TaskAnswerSession getScoreBySession(Long sessionId);
     TaskAnswerResult processAnswers(
+        String tasksHashcode,
         List<TaskAnswer> answers,
         List<TaskCompilableAnswer> compilableAnswers,
         @Nullable User user

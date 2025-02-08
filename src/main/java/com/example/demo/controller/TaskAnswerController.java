@@ -47,6 +47,7 @@ public class TaskAnswerController {
             }
         }
         return taskAnswerService.processAnswers(
+            answers.getHashcode(),
             answers.getTaskToAnswer().entrySet().stream()
                 .map(entry ->
                     TaskAnswer.builder()

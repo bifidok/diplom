@@ -5,6 +5,7 @@ import com.example.demo.converter.TaskConverter;
 import com.example.demo.dto.TaskAnswer;
 import com.example.demo.dto.TaskAnswerResult;
 import com.example.demo.dto.TaskCompilableAnswer;
+import com.example.demo.dto.TaskDetail;
 import com.example.demo.entity.*;
 import com.example.demo.enums.Language;
 import com.example.demo.repository.*;
@@ -23,6 +24,7 @@ import java.util.stream.StreamSupport;
 @Service
 public class TaskAnswerServiceImpl implements TaskAnswerService {
     private TaskRepository taskRepository;
+    private TaskVersionRepository taskVersionRepository;
     private TaskProgramRepository taskProgramRepository;
     private TaskAnswerResultRepository taskAnswerResultRepository;
     private TaskAnswerResultTaskRepository taskAnswerResultTaskRepository;
@@ -31,6 +33,7 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
     private JdoodleService jdoodleService;
     private LanguageConverter languageConverter;
     private CodeExecutorService codeExecutorService;
+    private VersionRepository versionRepository;
 
     @Autowired
     public TaskAnswerServiceImpl(
@@ -42,7 +45,9 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         TaskInputRepository taskInputRepository,
         CodeExecutorService codeExecutorService,
         TaskProgramRepository taskProgramRepository,
-        TaskAnswerSessionRepository taskAnswerSessionRepository
+        TaskAnswerSessionRepository taskAnswerSessionRepository,
+        VersionRepository versionRepository,
+        TaskVersionRepository taskVersionRepository
     ) {
         this.taskRepository = taskRepository;
         this.taskAnswerResultRepository = taskAnswerResultRepository;
@@ -53,6 +58,8 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         this.codeExecutorService = codeExecutorService;
         this.taskProgramRepository = taskProgramRepository;
         this.taskAnswerSessionRepository = taskAnswerSessionRepository;
+        this.versionRepository = versionRepository;
+        this.taskVersionRepository = taskVersionRepository;
     }
 
     @Override
@@ -64,19 +71,36 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         var taskAnswerResultTask = taskAnswerResultTaskRepository.findTaskAnswerResultTaskByTaskAnswerResultId(
             taskAnswerResultOptional.get().getId()
         );
+
+        var taskIdToIndex = taskVersionRepository.findTaskVersionByVersionHashcode(
+            taskAnswerResultOptional.get().getVersion().getHashcode()
+        ).stream()
+            .collect(Collectors.toMap(
+                taskVersion -> taskVersion.getId().getTaskId(),
+                taskVersion -> taskVersion.getIndex()
+            ));
         return com.example.demo.dto.TaskAnswerSession.builder()
+            .hashcode(taskAnswerResultOptional.get().getVersion().getHashcode())
             .commonScore(taskAnswerResultOptional.get().getScore())
-            .taskIdToScore(
+            .taskIdToDetail(
                 taskAnswerResultTask.stream()
                     .collect(Collectors.toMap(
                         resultTask -> resultTask.getTask().getId(),
-                        resultTask -> resultTask.getScore()
+                        resultTask -> TaskDetail.builder()
+                            .score(resultTask.getScore())
+                            .index(taskIdToIndex.get(resultTask.getTask().getId()))
+                            .build()
                     ))
             )
             .build();
     }
 
-    public TaskAnswerResult processAnswers(List<TaskAnswer> answers, List<TaskCompilableAnswer> compilableAnswers, User user) {
+    public TaskAnswerResult processAnswers(
+        String tasksHashcode,
+        List<TaskAnswer> answers,
+        List<TaskCompilableAnswer> compilableAnswers,
+        User user
+    ) {
         var scoreSimpleTasks = processAnswers(answers);
         var scoreCompilableTasks = processCompilableAnswer(compilableAnswers);
         var taskAnswerSession = taskAnswerSessionRepository.save(TaskAnswerSession.builder()
@@ -85,6 +109,7 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         var taskAnswerResult = taskAnswerResultRepository.save(com.example.demo.entity.TaskAnswerResult.builder()
             .score((long) scoreCompilableTasks.score + scoreSimpleTasks.score)
             .taskAnswerSession(taskAnswerSession)
+            .version(versionRepository.findVersionByHashcode(tasksHashcode).get())
             .build());
         Stream.concat(scoreCompilableTasks.taskToScore.entrySet().stream(), scoreSimpleTasks.taskToScore.entrySet().stream())
             .map(taskToScore -> TaskAnswerResultTask.builder()
