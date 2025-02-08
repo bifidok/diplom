@@ -10,10 +10,10 @@ public class UserValidation {
     public static List<ValidationError> validate(String login, String password){
         List<ValidationError> errors = new ArrayList<>();
         if (login.length() < LOGIN_MIN_LENGTH) {
-            errors.add(new ValidationError(String.format("Login must be more than %s symbols", LOGIN_MIN_LENGTH)));
+            errors.add(new ValidationError(String.format("Логин должен быть больше %s символов", LOGIN_MIN_LENGTH)));
         }
         if (password.length() < PASSWORD_MIN_LENGTH) {
-            errors.add(new ValidationError(String.format("Password must be more than %s symbols", PASSWORD_MIN_LENGTH)));
+            errors.add(new ValidationError(String.format("Пароль должен быть больше %s символов", PASSWORD_MIN_LENGTH)));
         }
         return errors;
     }

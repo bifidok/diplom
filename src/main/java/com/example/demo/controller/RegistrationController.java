@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,7 +32,7 @@ public class RegistrationController {
     }
 
     @PostMapping
-    public ResponseEntity<String> register(
+    public ResponseEntity<List<String>> register(
         @RequestBody LoginForm loginForm,
         HttpServletRequest request,
         HttpServletResponse response
@@ -39,7 +40,7 @@ public class RegistrationController {
         var userOptional = userService.findByLogin(loginForm.login);
         if (userOptional.isPresent()) {
             return ResponseEntity.badRequest()
-                .body(String.format("User already exist %s", loginForm.login));
+                .body(List.of(String.format("User already exist %s", loginForm.login)));
         }
         var errors = UserValidation.validate(loginForm.login, loginForm.password);
         if (!errors.isEmpty()) {
@@ -47,7 +48,7 @@ public class RegistrationController {
                 .body(
                     errors.stream()
                         .map(ValidationError::message)
-                        .collect(Collectors.joining(" "))
+                        .toList()
                 );
         }
         User user = userService.save(loginForm.login, loginForm.password);
@@ -55,6 +56,6 @@ public class RegistrationController {
         SessionUtils.clearCookies(request, response);
         SessionUtils.addCookie(session, response);
         return ResponseEntity.ok()
-            .body("Registered");
+            .body(List.of("Registered"));
     }
 }

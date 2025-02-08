@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping("/login")
@@ -30,7 +31,7 @@ public class LoginController {
     }
 
     @PostMapping
-    public ResponseEntity<String> login(
+    public ResponseEntity<List<String>> login(
         @RequestBody LoginForm loginForm,
         HttpServletRequest request,
         HttpServletResponse response
@@ -38,11 +39,11 @@ public class LoginController {
         var userOptional = userService.findByLogin(loginForm.login);
         if (userOptional.isEmpty()) {
             return ResponseEntity.badRequest()
-                .body("User not exist");
+                .body(List.of("Пользователя не существует"));
         }
         if (!userOptional.get().getPassword().equals(loginForm.password)) {
             return ResponseEntity.badRequest()
-                .body("Not correct password");
+                .body(List.of("Неверный пароль"));
         }
         var userId = userOptional.get().getId();
         var lastSession = sessionService.findByUserId(userId);
@@ -55,6 +56,6 @@ public class LoginController {
         SessionUtils.clearCookies(request, response);
         SessionUtils.addCookie(session, response);
         return ResponseEntity.ok()
-            .body("Authenticated");
+            .body(List.of("Authenticated"));
     }
 }
