@@ -206,7 +206,7 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         boolean isCorrect = true;
         for (var input : inputs) {
             var expected = codeExecutorService.executeProgram(input.getValue(), program.getProgramName());
-            var actual = jdoodleService.executeCode(code, input.getValue(), language);
+            var actual = jdoodleService.executeCode(code, input.getValue(), language).getOutput();
             if (!expected.equals(actual)) {
                 isCorrect = false;
             }

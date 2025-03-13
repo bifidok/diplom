@@ -1,6 +1,7 @@
 package com.example.demo.service;
 
 import com.example.demo.converter.LanguageConverter;
+import com.example.demo.dto.CodeExecutionMessage;
 import com.example.demo.enums.Language;
 import com.example.demo.properties.jdoodle.JdoodleProperties;
 import com.example.demo.request.ExecuteRequest;
@@ -33,9 +34,9 @@ public class JdoodleServiceImpl implements JdoodleService {
         this.languageConverter = languageConverter;
     }
 
-    public String executeCode(String code, String input, Language language) {
+    public CodeExecutionMessage executeCode(String code, String input, Language language) {
         if (!jdoodleProperties.isEnabled()) {
-           return "";
+           return CodeExecutionMessage.builder().build();
         }
         var languageVersion = languageConverter.toPropertiesLanguage(jdoodleProperties.getLanguageVersions(), language);
         ExecuteRequest request = ExecuteRequest.builder()
@@ -58,21 +59,52 @@ public class JdoodleServiceImpl implements JdoodleService {
             entity,
             String.class
         );
-
-        return extractOutput(response.getBody());
+        if (hasErrors(response.getBody())) {
+            return CodeExecutionMessage.builder()
+                .error(extractError(response.getBody()))
+                .build();
+        }
+        return CodeExecutionMessage.builder()
+            .output(extractOutput(response.getBody()))
+            .build();
     }
 
     private String extractOutput(String body) {
-        String regex = "\\w?\"output\":\"(\\w+)\"";
+        String regexOutput = "\\w?\"output\":\"(\\w+)\"";
 
-        Pattern pattern = Pattern.compile(regex);
+        Pattern pattern = Pattern.compile(regexOutput);
         Matcher matcher = pattern.matcher(body);
 
         if (matcher.find()) {
             return matcher.group(1);
-        } else {
-            System.out.println("No match found." + body);
         }
-        return null;
+        throw new IllegalStateException(String.format("No output in body %s", body));
+    }
+
+    private String extractError(String body) {
+        String regexCodeErrorMessage = "\"output\"\\s*:\\s*\"((\\\\.|[^\"\\\\])*)\"";
+        String regexCodeNullMessage = "\"output\"\\s*:null";
+        Pattern pattern = Pattern.compile(regexCodeErrorMessage);
+        Matcher matcher = pattern.matcher(body);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        Pattern patternNull = Pattern.compile(regexCodeNullMessage);
+        Matcher matcherNull = patternNull.matcher(body);
+        if (matcherNull.find()) {
+            var output = matcherNull.group(1);
+            if (output.isEmpty() || "null".equals(output)) {
+                return "Something went wrong";
+            }
+        }
+        throw new IllegalStateException(String.format("No output in body %s", body));
+    }
+
+    private boolean hasErrors(String body){
+        String regexCodeError = "\\w?\"isExecutionSuccess\":false";
+        String regexCodeErrorNull = "\"isExecutionSuccess\":null";
+        Pattern pattern = Pattern.compile(regexCodeError);
+        Pattern patternNull = Pattern.compile(regexCodeErrorNull);
+        return pattern.matcher(body).find() || patternNull.matcher(body).find();
     }
 }
