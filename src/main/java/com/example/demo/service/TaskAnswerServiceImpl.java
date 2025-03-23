@@ -1,19 +1,16 @@
 package com.example.demo.service;
 
 import com.example.demo.converter.LanguageConverter;
-import com.example.demo.converter.TaskConverter;
 import com.example.demo.dto.TaskAnswer;
 import com.example.demo.dto.TaskAnswerResult;
 import com.example.demo.dto.TaskCompilableAnswer;
 import com.example.demo.dto.TaskDetail;
 import com.example.demo.entity.*;
 import com.example.demo.enums.Language;
+import com.example.demo.properties.UrlProperties;
 import com.example.demo.repository.*;
-import com.example.demo.request.TaskAnswerRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.function.Function;
@@ -34,6 +31,7 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
     private LanguageConverter languageConverter;
     private CodeExecutorService codeExecutorService;
     private VersionRepository versionRepository;
+    private UrlProperties urlProperties;
 
     @Autowired
     public TaskAnswerServiceImpl(
@@ -47,8 +45,8 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         TaskProgramRepository taskProgramRepository,
         TaskAnswerSessionRepository taskAnswerSessionRepository,
         VersionRepository versionRepository,
-        TaskVersionRepository taskVersionRepository
-    ) {
+        TaskVersionRepository taskVersionRepository,
+        UrlProperties urlProperties) {
         this.taskRepository = taskRepository;
         this.taskAnswerResultRepository = taskAnswerResultRepository;
         this.taskAnswerResultTaskRepository = taskAnswerResultTaskRepository;
@@ -60,6 +58,7 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
         this.taskAnswerSessionRepository = taskAnswerSessionRepository;
         this.versionRepository = versionRepository;
         this.taskVersionRepository = taskVersionRepository;
+        this.urlProperties = urlProperties;
     }
 
     @Override
@@ -123,7 +122,7 @@ public class TaskAnswerServiceImpl implements TaskAnswerService {
                 .build()
             ).forEach(taskAnswerResultTaskRepository::save);
         return TaskAnswerResult.builder()
-            .resultUrl("http://localhost:8080/answer/" + taskAnswerSession.getId())
+            .resultUrl(urlProperties.getUrl() + ":8080/answer/" + taskAnswerSession.getId())
             .build();
     }
 
